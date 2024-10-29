@@ -1,0 +1,23 @@
+{
+    "name": "rabixengine",
+    "version": "1.0.0",
+    "description": "",
+    "source": "src/index.ts",
+    "main": "dist/main.js",
+    "types": "dist/types.d.ts",
+    "scripts": {
+        "build": "gulp build",
+        "update": "gulp update"
+    },
+    "author": "",
+    "license": "ISC",
+    "devDependencies": {
+        "express": "^4.19.2",
+        "gulp": "^4.0.2",
+        "typescript": "^5.2.2"
+    },
+    "dependencies": {
+        "gulp-typescript": "^6.0.0-alpha.1",
+        "multithread-del": "^1.0.2"
+    }
+}
