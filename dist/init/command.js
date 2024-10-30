@@ -1,27 +1,65 @@
+const withResolvers = () => {
+    let resolve;
+    let reject;
+    const promise = new Promise((_resolve, _reject) => {
+        //@ts-ignore
+        resolve = _resolve;
+        reject = _reject;
+    });
+    //@ts-ignore
+    return { promise, resolve, reject };
+};
 export class CommandConcrete {
-    app;
-    build(app) {
-        this.app = app;
+    commandSequence;
+    constructor(commandSequence) {
+        this.commandSequence = commandSequence;
     }
-    async spawnEntity(id, ...components) {
-        this.app?.world.addEntity(id, ...components);
+    spawnEntity(id, ...components) {
+        const { promise, resolve } = withResolvers();
+        this.commandSequence.push(world => {
+            world.addEntity(id, ...components);
+            resolve();
+        });
+        return promise;
     }
     despawnEntity(id) {
-        throw new Error("Method not implemented.");
+        const { promise, resolve } = withResolvers();
+        this.commandSequence.push(world => {
+            world.removeEntity(id);
+            resolve();
+        });
+        return promise;
     }
     addComponent(id, ctor, ...args) {
-        throw new Error("Method not implemented.");
+        const { promise, resolve } = withResolvers();
+        this.commandSequence.push(world => {
+            world.addComponent(id, ctor, ...args);
+            resolve();
+        });
+        return promise;
     }
     removeComponent(id, ctor) {
-        throw new Error("Method not implemented.");
+        const { promise, resolve } = withResolvers();
+        this.commandSequence.push(world => {
+            world.removeComponent(id, ctor);
+            resolve();
+        });
+        return promise;
     }
     activateComponent(id, ctor) {
-        throw new Error("Method not implemented.");
+        const { promise, resolve } = withResolvers();
+        this.commandSequence.push(world => {
+            world.activateComponent(id, ctor);
+            resolve();
+        });
+        return promise;
     }
     deactivateComponent(id, ctor) {
-        throw new Error("Method not implemented.");
-    }
-    getEntityComponent(id, ctor) {
-        throw new Error("Method not implemented.");
+        const { promise, resolve } = withResolvers();
+        this.commandSequence.push(world => {
+            world.deactivateComponent(id, ctor);
+            resolve();
+        });
+        return promise;
     }
 }

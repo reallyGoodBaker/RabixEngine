@@ -46,14 +46,13 @@ class QueryResultConcrete {
     }
 }
 ParameterImplementor.register(ParameterType.Component, (desc, index, world, args, entity) => {
-    if (!entity) {
-        const gcomp = world.globalComponents.get(desc.data);
-        if (!gcomp) {
-            return false;
-        }
-        args[index] = gcomp;
+    const globalComponent = world.globalComponents.get(desc.data);
+    if (globalComponent) {
+        args[index] = globalComponent;
         return true;
     }
+    if (!entity)
+        return false;
     const comp = world.getEntityComponent(entity, desc.data);
     if (!comp) {
         return false;
@@ -62,11 +61,13 @@ ParameterImplementor.register(ParameterType.Component, (desc, index, world, args
     return true;
 });
 ParameterImplementor.register(ParameterType.Option, (desc, index, world, args, entity) => {
-    if (!entity) {
-        const gcomp = world.globalComponents.get(desc.data);
-        args[index] = gcomp;
+    const globalComponent = world.globalComponents.get(desc.data);
+    if (globalComponent) {
+        args[index] = globalComponent;
         return true;
     }
+    if (!entity)
+        return false;
     const comp = world.getEntityComponent(entity, desc.data);
     args[index] = comp;
     return true;

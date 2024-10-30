@@ -83,7 +83,7 @@ export interface ISystems {
     systemRecords: Map<WorldPeriods, ISystemRecords>;
     recordSystems(period: WorldPeriods, records: Iterable<ISystemRecord>): this;
     addSystem(system: ISystem): this;
-    addSystem(period: WorldPeriods, system: ISystem): this;
+    addSystem(period: WorldPeriods, ...system: ISystem[]): this;
     addSystem(period: WorldPeriods, systems: ISystem[]): this;
     entries(period: WorldPeriods): IterableIterator<ISystemRecord>;
 }
@@ -91,12 +91,13 @@ export type ConstructorParameters<T extends (new (...args: any) => any)> = T ext
 export interface ClassPrototype {
     constructor: new (...arg: any[]) => any;
 }
+export type Cmd = (world: IWorld) => void;
 export interface IWorld {
     entities: Set<IEntity>;
     addEntity(id: IEntity, ...components: IComponent[]): this;
     removeEntity(id: IEntity): this;
     getEntityComponent<T extends IComponent>(id: IEntity, ctor: ConstructorOf<T>): T | null;
-    singletonComponents: Map<ConstructorOf<IComponent>, IComponent>;
+    commandSequence: Cmd[];
     globalComponents: Map<ConstructorOf<IComponent>, IComponent>;
     systems: ISystems;
     store: Map<unknown, unknown>;
@@ -115,7 +116,6 @@ export interface Command {
     removeComponent(id: IEntity, ctor: ConstructorOf<IComponent>): Promise<void>;
     activateComponent(id: IEntity, ctor: ConstructorOf<IComponent>): Promise<void>;
     deactivateComponent(id: IEntity, ctor: ConstructorOf<IComponent>): Promise<void>;
-    getEntityComponent(id: IEntity, ctor: ConstructorOf<IComponent>): Promise<IComponent | null>;
 }
 export interface QueryResult<T = IComponent[]> {
     get<E extends IComponent>(ctor: ConstructorOf<E>): E | undefined;

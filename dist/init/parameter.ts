@@ -64,15 +64,14 @@ class QueryResultConcrete<T> implements QueryResult<T> {
 }
 
 ParameterImplementor.register(ParameterType.Component, (desc, index, world, args, entity) => {
-    if (!entity) {
-        const gcomp = world.globalComponents.get((desc as ParameterDescriptor<ParameterType.Component>).data)
-        if (!gcomp) {
-            return false
-        }
-
-        args[index] = gcomp
+    const globalComponent = world.globalComponents.get((desc as ParameterDescriptor<ParameterType.Component>).data)
+    if (globalComponent) {
+        args[index] = globalComponent
         return true
     }
+
+    if (!entity)
+        return false
 
     const comp = world.getEntityComponent(entity, (desc as ParameterDescriptor<ParameterType.Component>).data)
     if (!comp) {
@@ -84,11 +83,14 @@ ParameterImplementor.register(ParameterType.Component, (desc, index, world, args
 })
 
 ParameterImplementor.register(ParameterType.Option, (desc, index, world, args, entity) => {
-    if (!entity) {
-        const gcomp = world.globalComponents.get((desc as ParameterDescriptor<ParameterType.Option>).data)
-        args[index] = gcomp
+    const globalComponent = world.globalComponents.get((desc as ParameterDescriptor<ParameterType.Component>).data)
+    if (globalComponent) {
+        args[index] = globalComponent
         return true
     }
+
+    if (!entity)
+        return false
 
     const comp = world.getEntityComponent(entity, (desc as ParameterDescriptor<ParameterType.Option>).data)
     args[index] = comp

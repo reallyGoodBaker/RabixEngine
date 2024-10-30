@@ -38,8 +38,8 @@ export class Systems {
         }).filter(v => v);
         this.recordSystems(period, records);
     }
-    #addSystem_override2(period, system) {
-        this.#addSystem_override1(period, [system]);
+    #addSystem_override2(period, ...system) {
+        this.#addSystem_override1(period, system);
     }
     #addSystem_override3(system) {
         this.#addSystem_override2(WorldPeriods.Update, system);
@@ -52,7 +52,7 @@ export class Systems {
 function systemRecord(system) {
     return { system, components: [], runner: RunnerLabel.Local };
 }
-function getRecord(system) {
+export function getRecord(system) {
     let record;
     if ((record = Systems.systemMap.get(system)) === undefined) {
         record = systemRecord(system);
@@ -78,11 +78,7 @@ export const Remote = createDecorator(g => {
         record.runner = RunnerLabel.Remote;
     };
 });
-export const singletonSymbol = Symbol('singleton');
 export const globalSymbol = Symbol('global');
-export const Singleton = (target) => {
-    target[singletonSymbol] = true;
-};
 export const Global = (target) => {
     target[globalSymbol] = true;
 };

@@ -1,7 +1,7 @@
 import { ConstructorOf } from "../util/lang_feature.js"
-import { Systems, globalSymbol, singletonSymbol } from "./systems.js"
+import { Systems, globalSymbol } from "./systems.js"
 import { IRow, IStorage, ITable } from "./table.js"
-import { ClassPrototype, IComponent, IEntity, ISystems, IWorld } from "./types.js"
+import { ClassPrototype, Cmd, IComponent, IEntity, ISystems, IWorld } from "./types.js"
 
 export class Entity implements IComponent {
     constructor(
@@ -13,12 +13,12 @@ export class World implements IWorld {
     
     constructor(
         public entities: Set<IEntity>,
-        public singletonComponents: Map<ConstructorOf<IComponent>, IComponent>,
         public globalComponents: Map<ConstructorOf<IComponent>, IComponent>,
         public systems: ISystems,
         public store: Map<unknown, unknown>,
         public storage: IStorage,
-        public table: ITable
+        public table: ITable,
+        public commandSequence: Cmd[],
     ) {}
 
     addComponent<T>(id: IEntity, component: T): void
@@ -33,6 +33,10 @@ export class World implements IWorld {
         }
 
         return this.#addComponent_override1(id, ctor)
+    }
+
+    checkIfGlobal(ctor: ConstructorOf<IComponent>): boolean {
+        return (ctor as any)[globalSymbol]
     }
 
     #addComponent_override1<T extends IComponent>(id: IEntity, component: T) {
@@ -50,6 +54,12 @@ export class World implements IWorld {
 
         const ctor = prototype.constructor as ConstructorOf<IComponent>
 
+        //全局组件不储存在表中
+        if (this.checkIfGlobal(ctor)) {
+            this.globalComponents.set(ctor, component)
+            return
+        }
+
         // Entity已拥有该组件
         if (row.has(ctor)) {
             return
@@ -63,6 +73,13 @@ export class World implements IWorld {
         ctor: ConstructorOf<T>, 
         args: ConstructorParameters<ConstructorOf<T>>[]
     ): void {
+        //全局组件不储存在表中
+        if (this.checkIfGlobal(ctor)) {
+            const component = Reflect.construct(ctor, args)
+            this.globalComponents.set(ctor, component!)
+            return
+        }
+
         const row = this.storage.get(id)
 
         // 没有Entity
@@ -111,11 +128,11 @@ export class World implements IWorld {
         return new World(
             new Set(),
             new Map(),
-            new Map(),
             Systems.create(),
             new Map(),
             new Map(),
             new Map(),
+            [],
         )
     }
 
@@ -188,11 +205,6 @@ export class World implements IWorld {
 
         if (row && table?.has(ctor)) {
             return <T> row.get(ctor) ?? null
-        }
-
-        //@ts-ignore
-        if (ctor[singletonSymbol] && table?.has(ctor)) {
-            return <T> this.singletonComponents.get(ctor) ?? null
         }
 
         //@ts-ignore

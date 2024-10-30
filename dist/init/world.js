@@ -1,4 +1,4 @@
-import { Systems, globalSymbol, singletonSymbol } from "./systems.js";
+import { Systems, globalSymbol } from "./systems.js";
 export class Entity {
     id;
     constructor(id) {
@@ -7,26 +7,29 @@ export class Entity {
 }
 export class World {
     entities;
-    singletonComponents;
     globalComponents;
     systems;
     store;
     storage;
     table;
-    constructor(entities, singletonComponents, globalComponents, systems, store, storage, table) {
+    commandSequence;
+    constructor(entities, globalComponents, systems, store, storage, table, commandSequence) {
         this.entities = entities;
-        this.singletonComponents = singletonComponents;
         this.globalComponents = globalComponents;
         this.systems = systems;
         this.store = store;
         this.storage = storage;
         this.table = table;
+        this.commandSequence = commandSequence;
     }
     addComponent(id, ctor, ...args) {
         if (typeof ctor === 'function') {
             return this.#addComponent_override2(id, ctor, args);
         }
         return this.#addComponent_override1(id, ctor);
+    }
+    checkIfGlobal(ctor) {
+        return ctor[globalSymbol];
     }
     #addComponent_override1(id, component) {
         const row = this.storage.get(id);
@@ -39,6 +42,11 @@ export class World {
             throw Error('未使用class构造Component');
         }
         const ctor = prototype.constructor;
+        //全局组件不储存在表中
+        if (this.checkIfGlobal(ctor)) {
+            this.globalComponents.set(ctor, component);
+            return;
+        }
         // Entity已拥有该组件
         if (row.has(ctor)) {
             return;
@@ -46,6 +54,12 @@ export class World {
         row.set(ctor, component);
     }
     #addComponent_override2(id, ctor, args) {
+        //全局组件不储存在表中
+        if (this.checkIfGlobal(ctor)) {
+            const component = Reflect.construct(ctor, args);
+            this.globalComponents.set(ctor, component);
+            return;
+        }
         const row = this.storage.get(id);
         // 没有Entity
         if (!row) {
@@ -79,7 +93,7 @@ export class World {
         row?.add(ctor);
     }
     static create() {
-        return new World(new Set(), new Map(), new Map(), Systems.create(), new Map(), new Map(), new Map());
+        return new World(new Set(), new Map(), Systems.create(), new Map(), new Map(), new Map(), []);
     }
     addEntity(id, ...components) {
         this.entities.add(id);
@@ -134,10 +148,6 @@ export class World {
         const row = storage.get(id);
         if (row && table?.has(ctor)) {
             return row.get(ctor) ?? null;
-        }
-        //@ts-ignore
-        if (ctor[singletonSymbol] && table?.has(ctor)) {
-            return this.singletonComponents.get(ctor) ?? null;
         }
         //@ts-ignore
         if (ctor[globalSymbol]) {

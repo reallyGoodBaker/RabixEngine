@@ -1,6 +1,6 @@
 import { ConstructorOf } from "../util/lang_feature.js";
 import { IStorage, ITable } from "./table.js";
-import { IComponent, IEntity, ISystems, IWorld } from "./types.js";
+import { Cmd, IComponent, IEntity, ISystems, IWorld } from "./types.js";
 export declare class Entity implements IComponent {
     id: string;
     constructor(id: string);
@@ -8,15 +8,16 @@ export declare class Entity implements IComponent {
 export declare class World implements IWorld {
     #private;
     entities: Set<IEntity>;
-    singletonComponents: Map<ConstructorOf<IComponent>, IComponent>;
     globalComponents: Map<ConstructorOf<IComponent>, IComponent>;
     systems: ISystems;
     store: Map<unknown, unknown>;
     storage: IStorage;
     table: ITable;
-    constructor(entities: Set<IEntity>, singletonComponents: Map<ConstructorOf<IComponent>, IComponent>, globalComponents: Map<ConstructorOf<IComponent>, IComponent>, systems: ISystems, store: Map<unknown, unknown>, storage: IStorage, table: ITable);
+    commandSequence: Cmd[];
+    constructor(entities: Set<IEntity>, globalComponents: Map<ConstructorOf<IComponent>, IComponent>, systems: ISystems, store: Map<unknown, unknown>, storage: IStorage, table: ITable, commandSequence: Cmd[]);
     addComponent<T>(id: IEntity, component: T): void;
     addComponent<T extends IComponent>(id: IEntity, ctor: ConstructorOf<T>, ...args: ConstructorParameters<ConstructorOf<T>>): void;
+    checkIfGlobal(ctor: ConstructorOf<IComponent>): boolean;
     removeComponent(id: IEntity, ctor: ConstructorOf<IComponent>): void;
     deactivateComponent(id: IEntity, ctor: ConstructorOf<IComponent>): void;
     activateComponent(id: IEntity, ctor: ConstructorOf<IComponent>): void;

@@ -28,7 +28,7 @@ export class Systems implements ISystems {
     }
 
     addSystem(system: ISystem): this
-    addSystem(period: WorldPeriods, system: ISystem): this
+    addSystem(period: WorldPeriods, ...system: ISystem[]): this
     addSystem(period: WorldPeriods, systems: ISystem[]): this
     addSystem(period: unknown, system?: unknown): this {
         if (typeof period === 'function') {
@@ -54,8 +54,8 @@ export class Systems implements ISystems {
         this.recordSystems(period, records)
     }
 
-    #addSystem_override2(period: WorldPeriods, system: ISystem) {
-        this.#addSystem_override1(period, [ system ])
+    #addSystem_override2(period: WorldPeriods, ...system: ISystem[]) {
+        this.#addSystem_override1(period, system)
     }
 
     #addSystem_override3(system: ISystem) {
@@ -77,7 +77,7 @@ type DecoratorCallback = (
     getRecord: (system: ISystem) => ISystemRecord
 ) => Function
 
-function getRecord(system: ISystem) {
+export function getRecord(system: ISystem) {
     let record: ISystemRecord | undefined
     if ((record = Systems.systemMap.get(system)) === undefined) {
         record = systemRecord(system)
@@ -111,13 +111,7 @@ export const Remote = createDecorator(g => {
     }
 }) as MethodDecorator
 
-export const singletonSymbol = Symbol('singleton')
 export const globalSymbol = Symbol('global')
-
-export const Singleton = (target: any) => {
-    target[singletonSymbol] = true
-}
-
 export const Global = (target: any) => {
     target[globalSymbol] = true
 }
