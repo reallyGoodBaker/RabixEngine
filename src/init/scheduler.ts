@@ -13,6 +13,8 @@ async function defaultRun(this: IScheduler, world: IWorld) {
         await this.tick(world, WorldPeriods.BeforeUpdate)
         await this.tick(world, WorldPeriods.Update)
         await this.tick(world, WorldPeriods.AfterUpdate)
+
+        await Promise.allSettled(world.commandSequence.splice(0, world.commandSequence.length).map(v => v(world)))
     }
 
     await loop()
@@ -28,6 +30,7 @@ function looperBuilder(timeout: number) {
             await this.tick(world, WorldPeriods.BeforeUpdate)
             await this.tick(world, WorldPeriods.Update)
             await this.tick(world, WorldPeriods.AfterUpdate)
+            await Promise.allSettled(world.commandSequence.splice(0, world.commandSequence.length).map(v => v(world)))
 
             setTimeout(loop, timeout)
         }
