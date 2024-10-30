@@ -21,6 +21,10 @@ export class World implements IWorld {
         public commandSequence: Cmd[],
     ) {}
 
+    addGlobalComponent<T extends IComponent>(ctor: ConstructorOf<T>, ...args: any[]): void {
+        this.globalComponents.set(ctor, Reflect.construct(ctor, args))
+    }
+
     addComponent<T>(id: IEntity, component: T): void
     addComponent<T extends IComponent>(id: IEntity, ctor: ConstructorOf<T>, ...args: ConstructorParameters<ConstructorOf<T>>): void
     addComponent(

@@ -135,6 +135,7 @@ export interface IWorld {
     removeComponent(id: IEntity, ctor: ConstructorOf<IComponent>): void
     addComponent<T>(id: IEntity, component: T): void
     addComponent<T extends IComponent>(id: IEntity, ctor: ConstructorOf<T>, ...args: ConstructorParameters<ConstructorOf<T>>): void
+    addGlobalComponent<T extends IComponent>(ctor: ConstructorOf<T>, ...args: any[]): void
 }
 
 export interface Command {
